@@ -1,231 +1,217 @@
 'use client';
 
 import { useState } from 'react';
+import { MapPin, Phone, Mail, Clock, ChevronDown, ChevronUp } from 'lucide-react';
+import { useToast } from '../components/Toast';
+
+const faqs = [
+  {
+    q: 'Are your products suitable for sensitive skin?',
+    a: 'Yes, all our products are formulated with gentle, plant-derived ingredients. We recommend performing a patch test before first use, especially if you have a known sensitivity.',
+  },
+  {
+    q: 'Do you offer international shipping?',
+    a: 'Currently we ship within the United States. We\'re actively working on expanding our shipping options to serve international customers in the near future.',
+  },
+  {
+    q: 'How long do your products last?',
+    a: 'Our products have a shelf life of 12–18 months when stored correctly away from direct sunlight and heat. Each product carries an expiry date on the packaging.',
+  },
+  {
+    q: 'Are your products cruelty-free?',
+    a: 'Absolutely. We are committed to cruelty-free practices and never test on animals at any stage of development or production.',
+  },
+];
+
+function FaqItem({ faq }) {
+  const [open, setOpen] = useState(false);
+  return (
+    <div className="border-b border-sand last:border-b-0">
+      <button
+        onClick={() => setOpen(!open)}
+        aria-expanded={open}
+        className="w-full flex items-center justify-between py-5 text-left gap-4"
+      >
+        <span className="font-body font-medium text-charcoal">{faq.q}</span>
+        {open
+          ? <ChevronUp className="w-4 h-4 text-stone shrink-0" aria-hidden="true" />
+          : <ChevronDown className="w-4 h-4 text-stone shrink-0" aria-hidden="true" />
+        }
+      </button>
+      {open && (
+        <p className="font-body text-sm text-stone leading-relaxed pb-5 animate-fade-in">
+          {faq.a}
+        </p>
+      )}
+    </div>
+  );
+}
 
 export default function Contact() {
-  const [formData, setFormData] = useState({
-    name: '',
-    email: '',
-    message: ''
-  });
-  const [isSubmitting, setIsSubmitting] = useState(false);
-  const [submitMessage, setSubmitMessage] = useState('');
+  const { show } = useToast();
+  const [form, setForm] = useState({ name: '', email: '', subject: '', message: '' });
+  const [submitting, setSubmitting] = useState(false);
 
-  const handleChange = (e) => {
-    setFormData({
-      ...formData,
-      [e.target.name]: e.target.value
-    });
-  };
+  function handleChange(e) {
+    setForm((p) => ({ ...p, [e.target.name]: e.target.value }));
+  }
 
-  const handleSubmit = async (e) => {
+  function handleSubmit(e) {
     e.preventDefault();
-    setIsSubmitting(true);
-    
-    // Simulate form submission
+    setSubmitting(true);
     setTimeout(() => {
-      setSubmitMessage('Thank you for your message! We\'ll get back to you soon.');
-      setFormData({ name: '', email: '', message: '' });
-      setIsSubmitting(false);
-    }, 2000);
-  };
+      show('Message sent! We\'ll respond within 1–2 business days.', 'success');
+      setForm({ name: '', email: '', subject: '', message: '' });
+      setSubmitting(false);
+    }, 1500);
+  }
 
   return (
-    <div className="pb-20">
-      {/* Contact Header */}
-      <section className="relative bg-cream py-20">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
-          <h1 className="text-4xl md:text-6xl font-heading text-primary mb-6 animate-fade-in-up">
-            Get In Touch
-          </h1>
-          <p className="text-lg text-foreground max-w-3xl mx-auto animate-fade-in">
-            We'd love to hear from you. Send us a message and we'll respond as soon as possible.
+    <div className="bg-ivory">
+      {/* Header */}
+      <section className="bg-cream border-b border-sand py-16">
+        <div className="max-w-3xl mx-auto px-4 text-center">
+          <p className="font-body text-xs font-semibold uppercase tracking-widest text-sage mb-4">Get in Touch</p>
+          <h1 className="font-display text-4xl md:text-5xl text-charcoal mb-6">We&rsquo;d love to hear from you</h1>
+          <p className="font-body text-stone text-lg leading-relaxed">
+            Questions about our products, an order, or just want to say hello? Send us a message
+            and we&rsquo;ll get back to you as soon as possible.
           </p>
         </div>
       </section>
 
-      {/* Contact Content */}
+      {/* Main content */}
       <section className="py-20 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-16">
-          {/* Contact Form */}
+
+          {/* Form */}
           <div className="animate-fade-in-up">
-            <h2 className="text-3xl font-heading text-primary mb-8">Send us a message</h2>
-            
-            {submitMessage && (
-              <div className="bg-secondary/20 border border-secondary text-primary p-4 rounded-lg mb-6">
-                {submitMessage}
+            <h2 className="font-display text-2xl text-charcoal mb-8">Send a message</h2>
+            <form onSubmit={handleSubmit} className="space-y-5" noValidate>
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-5">
+                <div>
+                  <label htmlFor="name" className="block font-body text-sm font-medium text-charcoal mb-1.5">
+                    Name <span className="text-red-500">*</span>
+                  </label>
+                  <input
+                    id="name" name="name" type="text" required
+                    value={form.name} onChange={handleChange}
+                    placeholder="Your name"
+                    className="w-full px-4 py-3 border border-sand rounded-xl text-sm font-body text-charcoal bg-white placeholder:text-mist focus:outline-none focus:ring-2 focus:ring-forest/20 focus:border-forest/40"
+                  />
+                </div>
+                <div>
+                  <label htmlFor="email" className="block font-body text-sm font-medium text-charcoal mb-1.5">
+                    Email <span className="text-red-500">*</span>
+                  </label>
+                  <input
+                    id="email" name="email" type="email" required
+                    value={form.email} onChange={handleChange}
+                    placeholder="your@email.com"
+                    className="w-full px-4 py-3 border border-sand rounded-xl text-sm font-body text-charcoal bg-white placeholder:text-mist focus:outline-none focus:ring-2 focus:ring-forest/20 focus:border-forest/40"
+                  />
+                </div>
               </div>
-            )}
-
-            <form onSubmit={handleSubmit} className="space-y-6">
               <div>
-                <label htmlFor="name" className="block text-sm font-medium text-foreground mb-2">
-                  Name
-                </label>
+                <label htmlFor="subject" className="block font-body text-sm font-medium text-charcoal mb-1.5">Subject</label>
                 <input
-                  type="text"
-                  id="name"
-                  name="name"
-                  value={formData.name}
-                  onChange={handleChange}
-                  required
-                  className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent transition-colors duration-200"
-                  placeholder="Your full name"
+                  id="subject" name="subject" type="text"
+                  value={form.subject} onChange={handleChange}
+                  placeholder="What is your message about?"
+                  className="w-full px-4 py-3 border border-sand rounded-xl text-sm font-body text-charcoal bg-white placeholder:text-mist focus:outline-none focus:ring-2 focus:ring-forest/20 focus:border-forest/40"
                 />
               </div>
-
               <div>
-                <label htmlFor="email" className="block text-sm font-medium text-foreground mb-2">
-                  Email
-                </label>
-                <input
-                  type="email"
-                  id="email"
-                  name="email"
-                  value={formData.email}
-                  onChange={handleChange}
-                  required
-                  className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent transition-colors duration-200"
-                  placeholder="your.email@example.com"
-                />
-              </div>
-
-              <div>
-                <label htmlFor="message" className="block text-sm font-medium text-foreground mb-2">
-                  Message
+                <label htmlFor="message" className="block font-body text-sm font-medium text-charcoal mb-1.5">
+                  Message <span className="text-red-500">*</span>
                 </label>
                 <textarea
-                  id="message"
-                  name="message"
-                  value={formData.message}
-                  onChange={handleChange}
-                  required
-                  rows={6}
-                  className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent transition-colors duration-200 resize-vertical"
-                  placeholder="Tell us how we can help you..."
+                  id="message" name="message" required rows={6}
+                  value={form.message} onChange={handleChange}
+                  placeholder="Tell us how we can help…"
+                  className="w-full px-4 py-3 border border-sand rounded-xl text-sm font-body text-charcoal bg-white placeholder:text-mist focus:outline-none focus:ring-2 focus:ring-forest/20 focus:border-forest/40 resize-y min-h-[140px]"
                 />
               </div>
-
               <button
                 type="submit"
-                disabled={isSubmitting}
-                className="w-full bg-primary hover:bg-primary-light disabled:opacity-50 disabled:cursor-not-allowed text-white font-medium py-3 px-6 rounded-lg transition-colors duration-200"
+                disabled={submitting}
+                className="w-full bg-forest text-white font-body font-semibold text-sm py-4 rounded-xl hover:bg-forest-dark active:scale-[0.97] transition-all duration-200 disabled:opacity-60"
               >
-                {isSubmitting ? 'Sending...' : 'Send Message'}
+                {submitting ? 'Sending…' : 'Send Message'}
               </button>
             </form>
           </div>
 
-          {/* Contact Information */}
-          <div className="animate-fade-in">
-            <h2 className="text-3xl font-heading text-primary mb-8">Contact Information</h2>
-            
-            <div className="space-y-8">
-              <div className="flex items-start">
-                <div className="w-12 h-12 bg-secondary rounded-full flex items-center justify-center flex-shrink-0 mr-4">
-                  <svg className="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" />
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" />
-                  </svg>
-                </div>
-                <div>
-                  <h3 className="text-xl font-semibold text-foreground mb-2">Visit Us</h3>
-                  <p className="text-gray-600">
-                    123 Botanical Lane<br />
-                    Nature Valley, NV 12345<br />
-                    United States
-                  </p>
-                </div>
-              </div>
-
-              <div className="flex items-start">
-                <div className="w-12 h-12 bg-secondary rounded-full flex items-center justify-center flex-shrink-0 mr-4">
-                  <svg className="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M3 5a2 2 0 012-2h3.28a1 1 0 01.948.684l1.498 4.493a1 1 0 01-.502 1.21l-2.257 1.13a11.042 11.042 0 005.516 5.516l1.13-2.257a1 1 0 011.21-.502l4.493 1.498a1 1 0 01.684.949V19a2 2 0 01-2 2h-1C9.716 21 3 14.284 3 6V5z" />
-                  </svg>
-                </div>
-                <div>
-                  <h3 className="text-xl font-semibold text-foreground mb-2">Call Us</h3>
-                  <p className="text-gray-600">
-                    +1 (555) 123-4567<br />
-                    Mon - Fri: 9:00 AM - 6:00 PM EST
-                  </p>
-                </div>
-              </div>
-
-              <div className="flex items-start">
-                <div className="w-12 h-12 bg-secondary rounded-full flex items-center justify-center flex-shrink-0 mr-4">
-                  <svg className="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M3 8l7.89 4.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
-                  </svg>
-                </div>
-                <div>
-                  <h3 className="text-xl font-semibold text-foreground mb-2">Email Us</h3>
-                  <p className="text-gray-600">
-                    hello@swanbotanicals.com<br />
-                    support@swanbotanicals.com
-                  </p>
-                </div>
+          {/* Info */}
+          <div className="animate-fade-in space-y-8">
+            <div>
+              <h2 className="font-display text-2xl text-charcoal mb-8">Contact Information</h2>
+              <div className="space-y-6">
+                {[
+                  {
+                    icon: <MapPin className="w-5 h-5" />,
+                    title: 'Visit Us',
+                    lines: ['123 Botanical Lane', 'Nature Valley, NV 12345', 'United States'],
+                  },
+                  {
+                    icon: <Phone className="w-5 h-5" />,
+                    title: 'Call Us',
+                    lines: ['+1 (555) 123-4567'],
+                  },
+                  {
+                    icon: <Mail className="w-5 h-5" />,
+                    title: 'Email Us',
+                    lines: ['hello@swanbotanicals.com', 'support@swanbotanicals.com'],
+                  },
+                ].map((item) => (
+                  <div key={item.title} className="flex items-start gap-4">
+                    <div className="w-10 h-10 bg-forest/10 rounded-xl flex items-center justify-center shrink-0 text-forest">
+                      {item.icon}
+                    </div>
+                    <div>
+                      <h3 className="font-body font-semibold text-charcoal mb-1">{item.title}</h3>
+                      {item.lines.map((l) => (
+                        <p key={l} className="font-body text-sm text-stone">{l}</p>
+                      ))}
+                    </div>
+                  </div>
+                ))}
               </div>
             </div>
 
-            {/* Business Hours */}
-            <div className="mt-12 bg-cream p-6 rounded-lg">
-              <h3 className="text-xl font-semibold text-primary mb-4">Business Hours</h3>
-              <div className="space-y-2 text-foreground">
-                <div className="flex justify-between">
-                  <span>Monday - Friday:</span>
-                  <span>9:00 AM - 6:00 PM EST</span>
-                </div>
-                <div className="flex justify-between">
-                  <span>Saturday:</span>
-                  <span>10:00 AM - 4:00 PM EST</span>
-                </div>
-                <div className="flex justify-between">
-                  <span>Sunday:</span>
-                  <span>Closed</span>
-                </div>
+            {/* Business hours */}
+            <div className="bg-cream border border-sand rounded-2xl p-6">
+              <div className="flex items-center gap-2 mb-4">
+                <Clock className="w-4 h-4 text-forest" aria-hidden="true" />
+                <h3 className="font-body font-semibold text-charcoal">Business Hours</h3>
+              </div>
+              <div className="space-y-2 font-body text-sm">
+                {[
+                  ['Monday – Friday', '9:00 AM – 6:00 PM EST'],
+                  ['Saturday',        '10:00 AM – 4:00 PM EST'],
+                  ['Sunday',          'Closed'],
+                ].map(([day, hrs]) => (
+                  <div key={day} className="flex justify-between">
+                    <span className="text-stone">{day}</span>
+                    <span className="text-charcoal font-medium">{hrs}</span>
+                  </div>
+                ))}
               </div>
             </div>
           </div>
         </div>
       </section>
 
-      {/* FAQ Section */}
-      <section className="bg-sage py-20">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="text-center mb-16">
-            <h2 className="text-3xl font-heading text-white mb-6 animate-fade-in-up">
-              Frequently Asked Questions
-            </h2>
-            <p className="text-white/90 max-w-2xl mx-auto animate-fade-in">
-              Find answers to common questions about our products and services.
-            </p>
+      {/* FAQ */}
+      <section id="faq" className="bg-cream border-t border-sand py-20">
+        <div className="max-w-3xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="text-center mb-12">
+            <p className="font-body text-xs font-semibold uppercase tracking-widest text-sage mb-3">FAQ</p>
+            <h2 className="font-display text-3xl text-charcoal">Frequently Asked Questions</h2>
           </div>
-
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-            {[
-              {
-                question: "Are your products suitable for sensitive skin?",
-                answer: "Yes, all our products are formulated with gentle, natural ingredients suitable for sensitive skin. We recommend doing a patch test before first use."
-              },
-              {
-                question: "Do you offer international shipping?",
-                answer: "Currently, we ship within the United States. We're working on expanding our shipping options to serve customers internationally."
-              },
-              {
-                question: "How long do your products last?",
-                answer: "Our products have a shelf life of 12-18 months when stored properly. Each product has an expiration date printed on the packaging."
-              },
-              {
-                question: "Are your products cruelty-free?",
-                answer: "Absolutely! We are committed to cruelty-free practices and never test on animals. We're certified by Leaping Bunny."
-              }
-            ].map((faq, index) => (
-              <div key={index} className="bg-white/10 p-6 rounded-lg animate-fade-in-up">
-                <h3 className="text-lg font-semibold text-white mb-3">{faq.question}</h3>
-                <p className="text-white/90">{faq.answer}</p>
-              </div>
+          <div className="bg-white border border-sand rounded-2xl px-6 divide-y divide-sand">
+            {faqs.map((faq) => (
+              <FaqItem key={faq.q} faq={faq} />
             ))}
           </div>
         </div>

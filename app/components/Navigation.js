@@ -2,103 +2,216 @@
 
 import { useState, useEffect } from 'react';
 import Link from 'next/link';
+import { usePathname } from 'next/navigation';
+import { Search, Heart, ShoppingBag, Menu, X, Leaf } from 'lucide-react';
+import { useCart } from '../context/CartContext';
+import { useWishlist } from '../context/WishlistContext';
+import CartDrawer from './CartDrawer';
+import SearchModal from './SearchModal';
+
+const navLinks = [
+  { name: 'Home',    href: '/' },
+  { name: 'Shop',    href: '/products' },
+  { name: 'About',   href: '/about' },
+  { name: 'Contact', href: '/contact' },
+];
 
 export default function Navigation() {
-  const [isScrolled, setIsScrolled] = useState(false);
-  const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
+  const pathname = usePathname();
+  const { cartCount } = useCart();
+  const { wishlistCount } = useWishlist();
 
+  const [isScrolled,       setIsScrolled]       = useState(false);
+  const [mobileOpen,       setMobileOpen]       = useState(false);
+  const [cartOpen,         setCartOpen]         = useState(false);
+  const [searchOpen,       setSearchOpen]       = useState(false);
+
+  // Scroll detection
   useEffect(() => {
-    const handleScroll = () => {
-      setIsScrolled(window.scrollY > 50);
-    };
-
-    window.addEventListener('scroll', handleScroll);
+    const handleScroll = () => setIsScrolled(window.scrollY > 8);
+    window.addEventListener('scroll', handleScroll, { passive: true });
     return () => window.removeEventListener('scroll', handleScroll);
   }, []);
 
-  const navItems = [
-    { name: 'Home', href: '/' },
-    { name: 'About', href: '/about' },
-    { name: 'Products', href: '/products' },
-    { name: 'Contact', href: '/contact' },
-  ];
+  // Close mobile menu on route change
+  useEffect(() => { setMobileOpen(false); }, [pathname]);
+
+  // Lock body scroll when mobile menu is open
+  useEffect(() => {
+    document.body.style.overflow = mobileOpen ? 'hidden' : '';
+    return () => { document.body.style.overflow = ''; };
+  }, [mobileOpen]);
 
   return (
-    <nav
-      className={`fixed top-0 w-full z-50 transition-all duration-300 ${
-        isScrolled
-          ? 'bg-white/95 backdrop-blur-md shadow-lg'
-          : 'bg-transparent'
-      }`}
-    >
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div className="flex justify-between items-center h-20">
-          {/* Logo */}
-          <Link href="/" className="flex items-center space-x-2">
-            <div className="w-10 h-10 bg-primary rounded-full flex items-center justify-center">
-              <span className="text-white font-heading font-bold text-lg">S</span>
+    <>
+      <header
+        className={`fixed top-0 left-0 right-0 z-50 h-[72px] transition-all duration-300 ${
+          isScrolled
+            ? 'bg-white/98 backdrop-blur-md shadow-sm border-b border-sand'
+            : 'bg-white border-b border-sand/60'
+        }`}
+      >
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-full flex items-center justify-between">
+
+          {/* ── Logo ── */}
+          <Link
+            href="/"
+            className="flex items-center gap-2.5 shrink-0"
+            aria-label="Swan Botanicals — home"
+          >
+            <div className="w-8 h-8 bg-forest rounded-full flex items-center justify-center shrink-0">
+              <Leaf className="w-4 h-4 text-white" aria-hidden="true" />
             </div>
-            <span className="font-heading text-2xl font-semibold text-primary">
+            <span className="font-display text-xl font-semibold text-charcoal tracking-tight">
               Swan Botanicals
             </span>
           </Link>
 
-          {/* Desktop Menu */}
-          <div className="hidden md:flex items-center space-x-12">
-            {navItems.map((item) => (
-              <Link 
-                key={item.name} 
-                href={item.href} 
-                className="text-foreground hover:text-primary transition-colors duration-200 font-medium focus:text-green-900"
-              >
-                {item.name}
-              </Link>
-            ))}
-          </div>
+          {/* ── Desktop nav ── */}
+          <nav aria-label="Main navigation" className="hidden md:flex items-center gap-8">
+            {navLinks.map((link) => {
+              const isActive = pathname === link.href || (link.href !== '/' && pathname.startsWith(link.href));
+              return (
+                <Link
+                  key={link.href}
+                  href={link.href}
+                  className={`relative font-body text-sm font-medium transition-colors duration-200 py-1 ${
+                    isActive ? 'text-forest' : 'text-charcoal hover:text-forest'
+                  }`}
+                >
+                  {link.name}
+                  {isActive && (
+                    <span className="absolute -bottom-0.5 left-0 right-0 h-0.5 bg-forest rounded-full" />
+                  )}
+                </Link>
+              );
+            })}
+          </nav>
 
-          {/* Mobile Menu Button */}
-          <div className="md:hidden">
+          {/* ── Right icons ── */}
+          <div className="flex items-center gap-1">
+            {/* Search */}
             <button
-              onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
-              className="text-foreground hover:text-primary focus:outline-none"
+              onClick={() => setSearchOpen(true)}
+              aria-label="Open search"
+              className="w-9 h-9 flex items-center justify-center rounded-full text-stone hover:text-forest hover:bg-cream transition-all duration-150"
             >
-              <svg
-                className="w-6 h-6"
-                fill="none"
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                strokeWidth="2"
-                viewBox="0 0 24 24"
-                stroke="currentColor"
-              >
-                {isMobileMenuOpen ? (
-                  <path d="M6 18L18 6M6 6l12 12" />
-                ) : (
-                  <path d="M4 6h16M4 12h16M4 18h16" />
-                )}
-              </svg>
+              <Search className="w-4.5 h-4.5" aria-hidden="true" />
+            </button>
+
+            {/* Wishlist */}
+            <Link
+              href="/wishlist"
+              aria-label={`Wishlist${wishlistCount > 0 ? `, ${wishlistCount} items` : ''}`}
+              className="relative w-9 h-9 flex items-center justify-center rounded-full text-stone hover:text-forest hover:bg-cream transition-all duration-150"
+            >
+              <Heart className="w-4.5 h-4.5" aria-hidden="true" />
+              {wishlistCount > 0 && (
+                <span className="absolute -top-0.5 -right-0.5 min-w-[16px] h-4 bg-forest text-white text-[10px] font-bold rounded-full flex items-center justify-center px-0.5 leading-none">
+                  {wishlistCount > 9 ? '9+' : wishlistCount}
+                </span>
+              )}
+            </Link>
+
+            {/* Cart */}
+            <button
+              onClick={() => setCartOpen(true)}
+              aria-label={`Cart${cartCount > 0 ? `, ${cartCount} items` : ''}`}
+              className="relative w-9 h-9 flex items-center justify-center rounded-full text-stone hover:text-forest hover:bg-cream transition-all duration-150"
+            >
+              <ShoppingBag className="w-4.5 h-4.5" aria-hidden="true" />
+              {cartCount > 0 && (
+                <span className="absolute -top-0.5 -right-0.5 min-w-[16px] h-4 bg-forest text-white text-[10px] font-bold rounded-full flex items-center justify-center px-0.5 leading-none">
+                  {cartCount > 9 ? '9+' : cartCount}
+                </span>
+              )}
+            </button>
+
+            {/* Mobile menu toggle */}
+            <button
+              onClick={() => setMobileOpen(!mobileOpen)}
+              aria-label={mobileOpen ? 'Close menu' : 'Open menu'}
+              aria-expanded={mobileOpen}
+              aria-controls="mobile-menu"
+              className="md:hidden w-9 h-9 flex items-center justify-center rounded-full text-stone hover:text-forest hover:bg-cream transition-all duration-150 ml-1"
+            >
+              {mobileOpen ? <X className="w-5 h-5" /> : <Menu className="w-5 h-5" />}
             </button>
           </div>
         </div>
+      </header>
 
-        {/* Mobile Menu */}
-        {isMobileMenuOpen && (
-          <div className="md:hidden">
-            <div className="px-2 pt-2 pb-3 space-y-1 bg-white/95 backdrop-blur-md rounded-lg mt-2">
-              {navItems.map((item) => (
-                <Link 
-                  key={item.name} 
-                  href={item.href} 
-                  className="block px-3 py-2 text-foreground hover:text-primary transition-colors duration-200 font-medium"
-                  onClick={() => setIsMobileMenuOpen(false)}
-                >
-                  {item.name}
-                </Link>
-              ))}
-            </div>
-          </div>
+      {/* ── Mobile menu ── */}
+      <>
+        {/* Backdrop */}
+        {mobileOpen && (
+          <div
+            className="fixed inset-0 bg-black/30 z-40 md:hidden animate-fade-in"
+            onClick={() => setMobileOpen(false)}
+            aria-hidden="true"
+          />
         )}
-      </div>
-    </nav>
+
+        <nav
+          id="mobile-menu"
+          aria-label="Mobile navigation"
+          className={`
+            fixed top-[72px] left-0 right-0 z-40 bg-white border-b border-sand md:hidden
+            transition-all duration-300 ease-[cubic-bezier(0.16,1,0.3,1)]
+            ${mobileOpen ? 'opacity-100 translate-y-0' : 'opacity-0 -translate-y-3 pointer-events-none'}
+          `}
+        >
+          <ul className="px-6 py-4 space-y-1">
+            {navLinks.map((link) => {
+              const isActive = pathname === link.href || (link.href !== '/' && pathname.startsWith(link.href));
+              return (
+                <li key={link.href}>
+                  <Link
+                    href={link.href}
+                    className={`block py-3 font-body text-base font-medium border-b border-sand/50 transition-colors duration-150 ${
+                      isActive ? 'text-forest' : 'text-charcoal'
+                    }`}
+                  >
+                    {link.name}
+                  </Link>
+                </li>
+              );
+            })}
+            <li className="pt-3">
+              <Link
+                href="/wishlist"
+                className="flex items-center gap-3 py-3 font-body text-base font-medium text-charcoal transition-colors duration-150"
+              >
+                <Heart className="w-4 h-4 text-stone" />
+                Wishlist
+                {wishlistCount > 0 && (
+                  <span className="ml-auto text-xs font-semibold bg-cream text-forest px-2 py-0.5 rounded-full">
+                    {wishlistCount}
+                  </span>
+                )}
+              </Link>
+            </li>
+            <li>
+              <button
+                onClick={() => { setMobileOpen(false); setCartOpen(true); }}
+                className="flex items-center gap-3 w-full py-3 font-body text-base font-medium text-charcoal"
+              >
+                <ShoppingBag className="w-4 h-4 text-stone" />
+                Cart
+                {cartCount > 0 && (
+                  <span className="ml-auto text-xs font-semibold bg-cream text-forest px-2 py-0.5 rounded-full">
+                    {cartCount}
+                  </span>
+                )}
+              </button>
+            </li>
+          </ul>
+        </nav>
+      </>
+
+      {/* ── Drawers & Modals ── */}
+      <CartDrawer isOpen={cartOpen} onClose={() => setCartOpen(false)} />
+      <SearchModal isOpen={searchOpen} onClose={() => setSearchOpen(false)} />
+    </>
   );
 }
